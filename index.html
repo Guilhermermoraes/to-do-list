@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lista de Tarefas</title>
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+  <h1>Lista de Tarefas</h1>
+  <form id="taskForm">
+    <input type="text" id="taskInput" placeholder="Digite uma tarefa" required>
+    <button type="submit">Adicionar Tarefa</button>
+  </form>
+  <ul id="taskList"></ul>
+
+  <script>
+    // Função para carregar as tarefas do servidor e exibi-las na lista
+    function loadTasks() {
+      const url = 'http://localhost:8000/tasks';
+      fetch(url)
+        .then(response => response.json())
+        .then(tasks => {
+          const taskList = document.getElementById('taskList');
+          taskList.innerHTML = ''; // Limpa a lista antes de adicionar os itens novamente
+
+          tasks.forEach(task => {
+            const listItem = document.createElement('li');
+            listItem.textContent = task.task;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Deletar';
+            deleteButton.addEventListener('click', () => {
+              deleteTask(task.id); // Chama a função para deletar a tarefa quando o botão é clicado
+            });
+
+            listItem.appendChild(deleteButton);
+            taskList.appendChild(listItem);
+          });
+        })
+        .catch(error => {
+          console.error('Ocorreu um erro ao carregar as tarefas:', error);
+        });
+    }
+
+    // Função para deletar uma tarefa
+    function deleteTask(taskId) {
+      const url = `http://localhost:8000/tasks/${taskId}`;
+      fetch(url, {
+        method: 'DELETE'
+      })
+        .then(() => {
+          loadTasks(); // Recarrega a lista de tarefas após deletar uma tarefa
+        })
+        .catch(error => {
+          console.error('Ocorreu um erro ao deletar a tarefa:', error);
+        });
+    }
+
+    // Função para adicionar uma nova tarefa
+    function addTask(event) {
+  event.preventDefault();
+  const taskInput = document.getElementById('taskInput');
+  const task = taskInput.value;
+
+  const url = 'http://localhost:8000/tasks';
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ task })
+  })
+    .then(() => {
+      taskInput.value = '';
+      loadTasks(); // Recarrega a lista de tarefas após adicionar uma nova tarefa
+    })
+    .catch(error => {
+      console.error('Ocorreu um erro ao adicionar a tarefa:', error);
+    });
+
+  // Não há mais o setTimeout aqui
+
+}
+
+
+    // Carrega as tarefas ao carregar a página
+    loadTasks();
+
+    document.getElementById('taskForm').addEventListener('submit', addTask);
+  </script>
+</body>
+</html>
